@@ -1,42 +1,27 @@
-package org.keedio.flume.source;
+package org.njzq.flume.source;
 
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.*;
-
-import org.hibernate.cfg.Configuration;
+import org.apache.flume.Context;
+import org.apache.flume.conf.ConfigurationException;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-
-import static org.json.simple.parser.ParseException.*;
-
-import org.apache.flume.conf.ConfigurationException;
-import org.apache.flume.Context;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.json.simple.parser.ParseException.ERROR_UNEXPECTED_EXCEPTION;
+
 
 /**
- * Helper to manage configuration parameters and utility methods <p>
- * <p>
- * Configuration parameters readed from flume configuration file:
- * <tt>type: </tt> org.keedio.flume.source.SQLSource <p>
- * <tt>table: </tt> table to read from <p>
- * <tt>columns.to.select: </tt> columns to select for import data (* will import all) <p>
- * <tt>run.query.delay: </tt> delay time to execute each query to database <p>
- * <tt>status.file.path: </tt> Directory to save status file <p>
- * <tt>status.file.name: </tt> Name for status file (saves last row index processed) <p>
- * <tt>batch.size: </tt> Batch size to send events from flume source to flume channel <p>
- * <tt>max.rows: </tt> Max rows to import from DB in one query <p>
- * <tt>custom.query: </tt> Custom query to execute to database (be careful) <p>
- *
- * @author <a href="mailto:mvalle@keedio.com">Marcelo Valle</a>
- * @author <a href="mailto:lalazaro@keedio.com">Luis Lazaro</a>
+ * @author LH
+ * @description: 工具类
+ * @date 2021-04-19 13:55
  */
 
 public class SQLSourceHelper {

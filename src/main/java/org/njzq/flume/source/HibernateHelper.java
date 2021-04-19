@@ -1,10 +1,6 @@
-package org.keedio.flume.source;
+package org.njzq.flume.source;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
+import org.apache.flume.Context;
 import org.hibernate.CacheMode;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -13,16 +9,18 @@ import org.hibernate.boot.registry.StandardServiceRegistryBuilder;
 import org.hibernate.cfg.Configuration;
 import org.hibernate.service.ServiceRegistry;
 import org.hibernate.transform.Transformers;
-import org.keedio.flume.metrics.trade;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.flume.Context;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
- * Helper class to manage hibernate sessions and perform queries
- *
- * @author <a href="mailto:mvalle@keedio.com">Marcelo Valle</a>
- *
+ * @author LH
+ * @description: 工具类
+ * @date 2021-04-19 13:55
  */
 public class HibernateHelper {
 

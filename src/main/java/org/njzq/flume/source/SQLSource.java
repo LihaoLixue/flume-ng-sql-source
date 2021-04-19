@@ -16,7 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  *******************************************************************************/
-package org.keedio.flume.source;
+package org.njzq.flume.source;
+
+import com.opencsv.CSVWriter;
+import org.apache.flume.Context;
+import org.apache.flume.Event;
+import org.apache.flume.EventDeliveryException;
+import org.apache.flume.PollableSource;
+import org.apache.flume.conf.Configurable;
+import org.apache.flume.event.SimpleEvent;
+import org.apache.flume.source.AbstractSource;
+import org.keedio.flume.metrics.SqlSourceCounter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -26,26 +38,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.flume.Context;
-import org.apache.flume.Event;
-import org.apache.flume.EventDeliveryException;
-import org.apache.flume.PollableSource;
-import org.apache.flume.conf.Configurable;
-import org.apache.flume.event.SimpleEvent;
-import org.apache.flume.source.AbstractSource;
-import org.apache.flume.source.ExecSource;
-import org.keedio.flume.metrics.SqlSourceCounter;
-import org.keedio.flume.metrics.trade;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.opencsv.CSVWriter;
-
-
 /**
- * A Source to read data from a SQL database. This source ask for new data in a table each configured time.<p>
- *
- * @author <a href="mailto:mvalle@keedio.com">Marcelo Valle</a>
+ * @author LH
+ * @description: source端
+ * @date 2021-04-19 13:55
  */
 public class SQLSource extends AbstractSource implements Configurable, PollableSource {
     @Override

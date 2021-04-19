@@ -12,6 +12,7 @@ import org.apache.flume.conf.ConfigurationException;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.keedio.flume.metrics.trade;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -52,44 +53,44 @@ public class SQLSourceHelperTest {
 
 		PowerMockito.verifyPrivate(sqlSourceUtilsSpy, Mockito.times(1)).invoke("createDirectory");
 	}*/
-	
+
 	@Test
 	public void getConnectionURL() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals("jdbc:mysql://host:3306/database", sqlSourceHelper.getConnectionURL());
 	}
-	
+
 	@Test
 	public void getCurrentIndex() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals("0",sqlSourceHelper.getCurrentIndex());
 	}
-	
+
 	@Test
 	public void setCurrentIndex() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		sqlSourceHelper.setCurrentIndex("10");
 		assertEquals("10",sqlSourceHelper.getCurrentIndex());
 	}
-	
+
 	@Test
 	public void getRunQueryDelay() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals(10000,sqlSourceHelper.getRunQueryDelay());
 	}
-	
+
 	@Test
 	public void getBatchSize() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals(100,sqlSourceHelper.getBatchSize());
 	}
-	
+
 	@Test
 	public void getQuery() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals("SELECT * FROM table",sqlSourceHelper.getQuery());
 	}
-	
+
 	@Test
 	public void getCustomQuery() {
 		when(context.getString("custom.query")).thenReturn("SELECT column FROM table");
@@ -97,7 +98,7 @@ public class SQLSourceHelperTest {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals("SELECT column FROM table",sqlSourceHelper.getQuery());
 	}
-	
+
 	@Test
 	public void chekGetAllRowsWithNullParam() {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
@@ -121,14 +122,14 @@ public class SQLSourceHelperTest {
 		when(context.getString("table")).thenReturn(null);
 		new SQLSourceHelper(context,"Source Name");
 	}
-	
+
 	@Test
 	public void chekGetAllRowsWithEmptyParam() {
-		
+
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals(new ArrayList<String>(),sqlSourceHelper.getAllRows(new ArrayList<List<Object>>()));
 	}
-	
+
 	@SuppressWarnings("deprecation")
 	@Test
 	public void chekGetAllRows() {
@@ -142,7 +143,7 @@ public class SQLSourceHelperTest {
 		int int2 = 2;
 		Date date1 = new Date(115,0,1);
 		Date date2 = new Date(115,1,2);
-				
+
 		List<Object> row1 = new ArrayList<Object>(3);
 		String[] expectedRow1 = new String[3];
 		row1.add(string1);
@@ -153,7 +154,7 @@ public class SQLSourceHelperTest {
 		expectedRow1[2] = date1.toString();
 		queryResult.add(row1);
 		expectedResult.add(expectedRow1);
-		
+
 		List<Object> row2 = new ArrayList<Object>(3);
 		String[] expectedRow2 = new String[3];
 		row2.add(string2);
@@ -164,7 +165,7 @@ public class SQLSourceHelperTest {
 		expectedRow2[2] = date2.toString();
 		queryResult.add(row2);
 		expectedResult.add(expectedRow2);
-		
+
 		assertArrayEquals(expectedResult.get(0),sqlSourceHelper.getAllRows(queryResult).get(0));
 		assertArrayEquals(expectedResult.get(1),sqlSourceHelper.getAllRows(queryResult).get(1));
 	}
@@ -172,7 +173,7 @@ public class SQLSourceHelperTest {
 	@SuppressWarnings("unused")
 	@Test
 	public void createDirectory() {
-		
+
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		File file = new File("/tmp/flume");
 		assertEquals(true, file.exists());
@@ -181,7 +182,7 @@ public class SQLSourceHelperTest {
 			file.delete();
 		}
 	}
-		
+
 	@Test
 	public void checkStatusFileCorrectlyCreated() {
 
@@ -229,17 +230,17 @@ public class SQLSourceHelperTest {
 		SQLSourceHelper sqlSourceHelper = new SQLSourceHelper(context,"Source Name");
 		assertEquals("password", sqlSourceHelper.getConnectionPassword());
 	}
-	
 
-	
+
+
 	@After
 	public void deleteDirectory(){
 		try {
-		
+
 			File file = new File("/tmp/flume");
 			if (file.exists())
 				FileUtils.deleteDirectory(file);
-		
+
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
