@@ -1,13 +1,15 @@
 package org.keedio.flume.source;
 
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Writer;
+import java.io.*;
+import java.lang.reflect.Type;
+import java.sql.Clob;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import org.hibernate.cfg.Configuration;
 import org.json.simple.JSONValue;
 import org.json.simple.parser.JSONParser;
@@ -50,6 +52,7 @@ public class SQLSourceHelper {
             columnsToSelect, customQuery, query, sourceName, delimiterEntry, connectionUserName, connectionPassword;
     private Boolean encloseByQuotes;
     private String interval_time;
+    private String json_key;
 
     private Context context;
 
@@ -71,6 +74,9 @@ public class SQLSourceHelper {
     private static final String TABLE_STATUS_FILE = "Table";
     private static final String LAST_INDEX_STATUS_FILE = "LastIndex";
     private static final String QUERY_STATUS_FILE = "Query";
+    private final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private final String JSON_LINE_END = " ";
+
 
     /**
      * Builds an SQLSourceHelper containing the configuration parameters and
@@ -159,6 +165,8 @@ public class SQLSourceHelper {
         if (queryResult == null || queryResult.isEmpty())
             return allRows;
 
+
+
         String[] row = null;
 
         for (int i = 0; i < queryResult.size(); i++) {
@@ -166,15 +174,73 @@ public class SQLSourceHelper {
             row = new String[rawRow.size()];
             for (int j = 0; j < rawRow.size(); j++) {
                 if (rawRow.get(j) != null)
-                    row[j] = rawRow.get(j).toString();
-//				else
-//					row[j] = "";
+                    if(rawRow.get(j) instanceof Clob){
+                        row[j] =clobToString((Clob)rawRow.get(j));
+                    }else {
+                        row[j] = rawRow.get(j).toString();
+                    }
+				else
+					row[j] = "";
             }
             allRows.add(row);
         }
 
         return allRows;
     }
+    private volatile AtomicInteger value1 = new AtomicInteger(0);
+
+    public void writeAllRows(List<Map<String,Object>> queryResult,PrintWriter printWriter){
+        value1.set(0);
+        if (queryResult == null || queryResult.isEmpty()) {
+            return ;
+        }
+        Gson gson = new Gson();
+        Type type = new TypeToken<Map<String,Object>>(){}.getType();
+        for (Map<String,Object> item :queryResult) {
+            value1.incrementAndGet();
+            for (Map.Entry<String,Object> entry:item.entrySet()) {
+                Object value = entry.getValue();
+                if (value == null){
+                    entry.setValue("");
+                }
+                // format time
+                if (value instanceof java.util.Date){
+                    entry.setValue(SDF.format(value));
+                }
+                if(value instanceof Clob){
+                    entry.setValue(clobToString((Clob)value));
+            }
+
+        }
+            String json = gson.toJson(item);
+            printWriter.print(json+JSON_LINE_END);
+    }
+    }
+
+    public String clobToString(Clob c) {
+        StringBuffer sb = new StringBuffer(1024);
+        Reader instream = null;
+        try {
+            instream = c.getCharacterStream();
+            char[] buffer = new char[(int) c.length()];
+            int length = 0;
+            while ((length = instream.read(buffer)) != -1) {
+                sb.append(buffer, 0, length);
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (instream != null)
+                    instream.close();
+            } catch (Exception dx) {
+                instream = null;
+            }
+        }
+        return sb.toString();
+    }
+
 
     /**
      * Create status file

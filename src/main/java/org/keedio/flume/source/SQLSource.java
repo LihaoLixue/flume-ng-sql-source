@@ -19,6 +19,7 @@
 package org.keedio.flume.source;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -61,7 +62,8 @@ public class SQLSource extends AbstractSource implements Configurable, PollableS
     private static final Logger LOG = LoggerFactory.getLogger(SQLSource.class);
     protected SQLSourceHelper sqlSourceHelper;
     private SqlSourceCounter sqlSourceCounter;
-    private CSVWriter csvWriter;
+    //private CSVWriter csvWriter;
+    private PrintWriter printWriter ;
     private HibernateHelper hibernateHelper;
     private String interval_time;
     private volatile AtomicInteger value = new AtomicInteger(0);
@@ -86,7 +88,8 @@ public class SQLSource extends AbstractSource implements Configurable, PollableS
         hibernateHelper.establishSession();
 
         /* Instantiate the CSV Writer */
-        csvWriter = new CSVWriter(new ChannelWriter(), sqlSourceHelper.getDelimiterEntry().charAt(0));
+//        csvWriter = new CSVWriter(new ChannelWriter(), sqlSourceHelper.getDelimiterEntry().charAt(0));
+        printWriter = new PrintWriter(new ChannelWriter());
 
     }
 
@@ -95,11 +98,37 @@ public class SQLSource extends AbstractSource implements Configurable, PollableS
      */
     @Override
     public Status process() throws EventDeliveryException {
-        LOG.info("时间间隔：{}",interval_time);
+        LOG.info("时间间隔：{}", interval_time);
         try {
+//            sqlSourceCounter.startProcess();
+//            LOG.info("start process.........");
+//            List<List<Object>> result = hibernateHelper.executeQuery();
+//            LOG.info("结果的长度是：{} " + result.size());
+//            for (int i = 0; i < result.size(); i++) {
+//                value.incrementAndGet();
+//            }
+//            LOG.info("查出的数据总条数: {}", value.get());
+//            value.set(0);
+//            if (!result.isEmpty()) {
+//                csvWriter.writeAll(sqlSourceHelper.getAllRows(result), sqlSourceHelper.encloseByQuotes());
+//                csvWriter.flush();
+//                sqlSourceCounter.incrementEventCount(result.size());
+//                sqlSourceHelper.updateStatusFile();
+//            }
+//
+//            sqlSourceCounter.endProcess(result.size());
+//
+////			if (result.size() < sqlSourceHelper.getMaxRows()){
+////				Thread.sleep(sqlSourceHelper.getRunQueryDelay());
+////			}
+//            Thread.sleep(Integer.valueOf(interval_time) * 1000);
+//
+//            return Status.READY;
+
             sqlSourceCounter.startProcess();
-            LOG.info("start process.........");
-            List<List<Object>> result = hibernateHelper.executeQuery();
+
+//            List<List<Object>> result = hibernateHelper.executeQue
+            List<Map<String, Object>> result = hibernateHelper.executeQueryForJson();
             LOG.info("结果的长度是：{} " + result.size());
             for (int i = 0; i < result.size(); i++) {
                 value.incrementAndGet();
@@ -107,28 +136,30 @@ public class SQLSource extends AbstractSource implements Configurable, PollableS
             LOG.info("查出的数据总条数: {}", value.get());
             value.set(0);
             if (!result.isEmpty()) {
-                csvWriter.writeAll(sqlSourceHelper.getAllRows(result), sqlSourceHelper.encloseByQuotes());
-                csvWriter.flush();
+                sqlSourceHelper.writeAllRows(result, printWriter);
+                printWriter.flush();
+//                csvWriter.writeAll(sqlSourceHelper.getAllRows(result),sqlSourceHelper.encloseByQuotes());
+//                csvWriter.flush();
                 sqlSourceCounter.incrementEventCount(result.size());
                 sqlSourceHelper.updateStatusFile();
             }
 
             sqlSourceCounter.endProcess(result.size());
 
-//			if (result.size() < sqlSourceHelper.getMaxRows()){
-//				Thread.sleep(sqlSourceHelper.getRunQueryDelay());
-//			}
+//            if (result.size() < sqlSourceHelper.getMaxRows()){
+//                Thread.sleep(sqlSourceHelper.getRunQueryDelay());
+//            }
             Thread.sleep(Integer.valueOf(interval_time) * 1000);
-
             return Status.READY;
 
-        } catch (IOException | InterruptedException e) {
+
+        } catch (InterruptedException e) {
             LOG.error("Error procesing row", e);
             return Status.BACKOFF;
         }
     }
 
-    /**
+        /**
      * Starts the source. Starts the metrics counter.
      */
     @Override
@@ -149,9 +180,7 @@ public class SQLSource extends AbstractSource implements Configurable, PollableS
 
         try {
             hibernateHelper.closeSession();
-            csvWriter.close();
-        } catch (IOException e) {
-            LOG.warn("Error CSVWriter object ", e);
+            printWriter.close();
         } finally {
             this.sqlSourceCounter.stop();
             super.stop();

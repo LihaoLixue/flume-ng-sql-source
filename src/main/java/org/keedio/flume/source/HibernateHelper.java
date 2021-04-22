@@ -145,6 +145,58 @@ public class HibernateHelper {
 		return rowsList;
 	}
 
+	public List<Map<String,Object>> executeQueryForJson() throws InterruptedException {
+		LOG.info("开始执行sql查询.......");
+		List<Map<String,Object>> rowsList = new ArrayList<>() ;
+		Query query;
+		if (!session.isConnected()){
+			resetConnection();
+			LOG.info("sql server连接成功");
+		}
+
+		if (sqlSourceHelper.isCustomQuerySet()){
+			query = session.createSQLQuery(sqlSourceHelper.buildQuery());
+
+			if (sqlSourceHelper.getMaxRows() != 0){
+				//query = query.setMaxResults(sqlSourceHelper.getMaxRows());
+//				Iterator iterate = query.iterate();
+				rowsList = query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+			}
+		}
+		else
+		{
+			query = session
+					.createSQLQuery(sqlSourceHelper.getQuery());
+			//.setFirstResult(Integer.parseInt(sqlSourceHelper.getCurrentIndex()));
+			rowsList = query.setResultTransformer(Transformers.ALIAS_TO_ENTITY_MAP).list();
+//			if (sqlSourceHelper.getMaxRows() != 0){
+//				query = query.setMaxResults(sqlSourceHelper.getMaxRows());
+//			}
+		}
+
+		try {
+//			rowsList = query.setFetchSize(sqlSourceHelper.getMaxRows()).setResultTransformer(Transformers.TO_LIST).list();
+		}catch (Exception e){
+			LOG.error("Exception thrown, resetting connection.",e);
+			resetConnection();
+		}
+
+/*		if (!rowsList.isEmpty()){
+			if (sqlSourceHelper.isCustomQuerySet()){
+					sqlSourceHelper.setCurrentIndex(rowsList.get(rowsList.size()-1).get(0).toString());
+			}
+			else
+			{
+				sqlSourceHelper.setCurrentIndex(Integer.toString((Integer.parseInt(sqlSourceHelper.getCurrentIndex())
+						+ rowsList.size())));
+			}
+		}*/
+
+		return rowsList;
+	}
+
+
+
 	private void resetConnection() throws InterruptedException{
 		session.close();
 		factory.close();
